@@ -1,37 +1,44 @@
+# Use stable python version instead of latest
+FROM python:3.11-slim
 
-# Python Based Docker
-FROM python:latest
+# Prevent Python from writing pyc files
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
-    python3-dev \
     gcc \
     g++ \
+    make \
     libffi-dev \
     libssl-dev \
-    make \
-    ninja-build \
+    libpq-dev \
+    python3-dev \
+    ffmpeg \
+    aria2 \
+    git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Update pip, setuptools, wheel before installing requirements
+# Upgrade pip, setuptools, wheel
 RUN pip3 install --upgrade pip setuptools wheel
 
-# Installing Packages
-RUN apt update && apt upgrade -y
-RUN apt install git curl python3-pip ffmpeg aria2 -y
-
-# Updating Pip Packages
-RUN pip3 install -U pip
-
-# Copying Requirements
+# Copy requirements first (for docker caching)
 COPY requirements.txt /requirements.txt
 
-# Installing Requirements
-RUN cd /
-RUN pip3 install -U -r requirements.txt
-RUN mkdir /EXTRACTOR
-WORKDIR / EXTRACTOR
-COPY start.sh /start.sh
+# Install python dependencies
+RUN pip3 install -r /requirements.txt
 
-# Running MessageSearchBot
-CMD ["/bin/bash", "/start.sh"
+# Create working directory
+RUN mkdir -p /EXTRACTOR
+WORKDIR /EXTRACTOR
+
+# Copy rest of the code
+COPY . /EXTRACTOR
+
+# Give permission to start.sh
+RUN chmod +x /start.sh
+
+# Start the app
+CMD ["/bin/bash", "/start.sh"]
