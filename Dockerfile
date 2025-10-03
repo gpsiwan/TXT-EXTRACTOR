@@ -28,7 +28,7 @@ RUN pip3 install --upgrade pip setuptools wheel
 COPY requirements.txt /requirements.txt
 
 # Install python dependencies
-RUN pip3 install -r /requirements.txt
+RUN pip3 install --no-cache-dir -r /requirements.txt
 
 # Create working directory
 RUN mkdir -p /EXTRACTOR
